@@ -1,6 +1,8 @@
 import sys
 import error
 from scanner import Scanner
+from parser import Parser
+from ast_printer import AstPrinter
 
 def runFile(fileName):
     with open(fileName, mode = 'rb') as f:
@@ -22,8 +24,12 @@ def runPrompt():
 def run(program):
     scanner = Scanner(program)
     tokens = scanner.scan_tokens()
-    for token in tokens:
-        print(token)
+    parser = Parser(tokens)
+    expression = parser.parse()
+
+    if error.hadError: return
+
+    print(AstPrinter().print(expression))
 
 if len(sys.argv) > 2:
     print("Usage: lox [script]")

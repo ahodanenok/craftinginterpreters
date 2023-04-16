@@ -2,6 +2,7 @@ import sys
 from token import TokenType
 
 hadError = False
+hadRuntimeError = False
 
 def error(line, message):
     report(line, "", message)
@@ -16,3 +17,8 @@ def errorToken(token, message):
         report(token.line, ' at end', message)
     else:
         report(token.line, " at '" + token.lexeme + "'", message)
+
+def runtimeError(error):
+    print('{}\n[line {}]'.format(error.message, error.token.line))
+    global hadRuntimeError
+    hadRuntimeError = True

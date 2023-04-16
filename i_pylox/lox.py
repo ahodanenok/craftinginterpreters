@@ -2,7 +2,10 @@ import sys
 import error
 from scanner import Scanner
 from parser import Parser
+from interpreter import Interpreter
 from ast_printer import AstPrinter
+
+interpreter = Interpreter()
 
 def runFile(fileName):
     with open(fileName, mode = 'rb') as f:
@@ -11,6 +14,8 @@ def runFile(fileName):
     run(program)
     if error.hadError:
         sys.exit(65)
+    if error.hadRuntimeError:
+        sys.exit(70)
 
 def runPrompt():
     try:
@@ -29,7 +34,7 @@ def run(program):
 
     if error.hadError: return
 
-    print(AstPrinter().print(expression))
+    interpreter.interpret(expression)
 
 if len(sys.argv) > 2:
     print("Usage: lox [script]")

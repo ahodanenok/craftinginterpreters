@@ -1,22 +1,19 @@
-from expr import Visitor
+from expr import ExprVisitor
+from stmt import StmtVisitor
 from token import TokenType
-import error
+from env import Environment
+from error import handleRuntimeError, RuntimeError
 
-class RuntimeError(Exception):
+class Interpreter(ExprVisitor, StmtVisitor):
 
-    def __init__(self, token, message):
-        self.token = token
-        self.message = message
+    environment = Environment()
 
-
-class Interpreter(Visitor):
-
-    def interpret(self, expression):
+    def interpret(self, statements):
         try:
-            value = self.evaluate(expression)
-            print(self.stringify(value))
+            for statement in statements:
+                self.execute(statement)
         except RuntimeError as e:
-            error.runtimeError(e)
+            runtimeError(e)
 
     def visitLiteralExpr(self, expr):
         return expr.value
@@ -33,6 +30,9 @@ class Interpreter(Visitor):
                 self.check_number_operand(expr.operator, right)
                 return -right
             case _: return None
+
+    def visitVariableExpr(self, expr):
+        return self.environment.get(expr.name)
 
     def check_number_operand(self, operator, operand):
         if isinstance(operand, float): return
@@ -70,6 +70,41 @@ class Interpreter(Visitor):
 
     def evaluate(self, expr):
         return expr.accept(self)
+
+    def execute(self, stmt):
+        stmt.accept(self)
+
+    def execute_block(self, statements, environment):
+        previous = self.environment
+        try:
+            self.environment = environment
+
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous
+
+    def visitBlockStmt(self, stmt):
+        self.execute_block(stmt.statements, Environment(self.environment))
+
+    def visitExpressionStmt(self, stmt):
+        self.evaluate(stmt.expression)
+
+    def visitPrintStmt(self, stmt):
+        value = self.evaluate(stmt.expression)
+        print(self.stringify(value))
+
+    def visitVarStmt(self, stmt):
+        value = None
+        if stmt.initializer is not None:
+            value = self.evaluate(stmt.initializer)
+
+        self.environment.define(stmt.name.lexeme, value)
+
+    def visitAssignExpr(self, expr):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
 
     def visitBinaryExpr(self, expr):
         left = self.evaluate(expr.left)

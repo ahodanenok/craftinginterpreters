@@ -15,10 +15,10 @@ def define_type(f, base_name, class_name, field_list):
     f.write('\n')
 
 def define_visitor(f, base_name, types):
-    f.write('class Visitor:\n\n')
+    f.write('class {}Visitor:\n\n'.format(base_name))
     for type in types:
         type_name = type.split(':')[0].strip()
-        f.write('    def visit{}{}({}):\n'.format(type_name, base_name, base_name.lower()))
+        f.write('    def visit{}{}(self, {}):\n'.format(type_name, base_name, base_name.lower()))
         f.write('        pass\n\n')
 
 def define_ast(output_dir, base_name, types):
@@ -38,9 +38,20 @@ def define_ast(output_dir, base_name, types):
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         sys.exit(64)
-    define_ast(sys.argv[1], "Expr", [
+
+    output_dir = sys.argv[1]
+    define_ast(output_dir, "Expr", [
+        'Assign: name, value',
         'Binary : left, operator, right',
         'Grouping : expression',
         'Literal : value',
-        'Unary : operator, right'
+        'Unary : operator, right',
+        'Variable : name'
+    ])
+
+    define_ast(output_dir, "Stmt", [
+        'Block : statements',
+        'Expression : expression',
+        'Print : expression',
+        'Var : name, initializer'
     ])

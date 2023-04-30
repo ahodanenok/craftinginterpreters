@@ -4,6 +4,12 @@ from token import TokenType
 hadError = False
 hadRuntimeError = False
 
+class RuntimeError(Exception):
+
+    def __init__(self, token, message):
+        self.token = token
+        self.message = message
+
 def error(line, message):
     report(line, "", message)
 
@@ -18,7 +24,7 @@ def errorToken(token, message):
     else:
         report(token.line, " at '" + token.lexeme + "'", message)
 
-def runtimeError(error):
+def handleRuntimeError(error):
     print('{}\n[line {}]'.format(error.message, error.token.line))
     global hadRuntimeError
     hadRuntimeError = True

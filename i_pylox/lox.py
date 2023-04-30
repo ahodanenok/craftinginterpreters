@@ -30,11 +30,11 @@ def run(program):
     scanner = Scanner(program)
     tokens = scanner.scan_tokens()
     parser = Parser(tokens)
-    expression = parser.parse()
+    statements = parser.parse()
 
     if error.hadError: return
 
-    interpreter.interpret(expression)
+    interpreter.interpret(statements)
 
 if len(sys.argv) > 2:
     print("Usage: lox [script]")

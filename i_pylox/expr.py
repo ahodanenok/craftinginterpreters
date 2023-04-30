@@ -1,19 +1,34 @@
-class Visitor:
+class ExprVisitor:
 
-    def visitBinaryExpr(expr):
+    def visitAssignExpr(self, expr):
         pass
 
-    def visitGroupingExpr(expr):
+    def visitBinaryExpr(self, expr):
         pass
 
-    def visitLiteralExpr(expr):
+    def visitGroupingExpr(self, expr):
         pass
 
-    def visitUnaryExpr(expr):
+    def visitLiteralExpr(self, expr):
+        pass
+
+    def visitUnaryExpr(self, expr):
+        pass
+
+    def visitVariableExpr(self, expr):
         pass
 
 class Expr:
     pass
+
+class Assign(Expr):
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visitAssignExpr(self)
 
 class Binary(Expr):
 
@@ -49,4 +64,12 @@ class Unary(Expr):
 
     def accept(self, visitor):
         return visitor.visitUnaryExpr(self)
+
+class Variable(Expr):
+
+    def __init__(self, name):
+        self.name = name
+
+    def accept(self, visitor):
+        return visitor.visitVariableExpr(self)
 

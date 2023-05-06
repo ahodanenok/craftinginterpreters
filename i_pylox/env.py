@@ -19,7 +19,7 @@ class Environment:
         raise RuntimeError(name, "Undefine variable '{}'.".format(name.lexeme))
 
     def assign(self, name, value):
-        if name.lexeme in values:
+        if name.lexeme in self.values:
             self.values[name.lexeme] = value
             return
 

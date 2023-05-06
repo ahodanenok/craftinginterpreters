@@ -45,6 +45,7 @@ if __name__ == '__main__':
         'Binary : left, operator, right',
         'Grouping : expression',
         'Literal : value',
+        'Logical : left, operator, right',
         'Unary : operator, right',
         'Variable : name'
     ])
@@ -52,6 +53,8 @@ if __name__ == '__main__':
     define_ast(output_dir, "Stmt", [
         'Block : statements',
         'Expression : expression',
+        'If : condition, then_branch, else_branch',
         'Print : expression',
-        'Var : name, initializer'
+        'Var : name, initializer',
+        'While : condition, body'
     ])

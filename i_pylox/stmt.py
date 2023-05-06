@@ -6,10 +6,16 @@ class StmtVisitor:
     def visitExpressionStmt(self, stmt):
         pass
 
+    def visitIfStmt(self, stmt):
+        pass
+
     def visitPrintStmt(self, stmt):
         pass
 
     def visitVarStmt(self, stmt):
+        pass
+
+    def visitWhileStmt(self, stmt):
         pass
 
 class Stmt:
@@ -31,6 +37,16 @@ class Expression(Stmt):
     def accept(self, visitor):
         return visitor.visitExpressionStmt(self)
 
+class If(Stmt):
+
+    def __init__(self, condition, then_branch, else_branch):
+        self.condition = condition
+        self.then_branch = then_branch
+        self.else_branch = else_branch
+
+    def accept(self, visitor):
+        return visitor.visitIfStmt(self)
+
 class Print(Stmt):
 
     def __init__(self, expression):
@@ -47,4 +63,13 @@ class Var(Stmt):
 
     def accept(self, visitor):
         return visitor.visitVarStmt(self)
+
+class While(Stmt):
+
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
+
+    def accept(self, visitor):
+        return visitor.visitWhileStmt(self)
 

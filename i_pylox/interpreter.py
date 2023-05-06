@@ -18,6 +18,16 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visitLiteralExpr(self, expr):
         return expr.value
 
+    def visitLogicalExpr(self, expr):
+        left = self.evaluate(expr.left)
+
+        if expr.operator.type == TokenType.OR:
+            if self.is_truthy(left): return left
+        else:
+            if not self.is_truthy(left): return left
+
+        return self.evaluate(expr.right)
+
     def visitGroupingExpr(self, expr):
         return self.evaluate(expr.expression)
 
@@ -44,7 +54,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def is_truthy(self, object):
         if object is None: return False
-        if isinstance(object, bool): return True
+        if isinstance(object, bool): return object
         return True
 
     def is_equal(self, a, b):
@@ -90,6 +100,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visitExpressionStmt(self, stmt):
         self.evaluate(stmt.expression)
 
+    def visitIfStmt(self, stmt):
+        if self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self.execute(stmt.else_branch)
+        return None
+
     def visitPrintStmt(self, stmt):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
@@ -100,6 +117,12 @@ class Interpreter(ExprVisitor, StmtVisitor):
             value = self.evaluate(stmt.initializer)
 
         self.environment.define(stmt.name.lexeme, value)
+
+    def visitWhileStmt(self, stmt):
+        while self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.body)
+
+        return None
 
     def visitAssignExpr(self, expr):
         value = self.evaluate(expr.value)

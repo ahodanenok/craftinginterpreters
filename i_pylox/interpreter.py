@@ -3,10 +3,29 @@ from stmt import StmtVisitor
 from token import TokenType
 from env import Environment
 from error import handleRuntimeError, RuntimeError
+from callable import LoxCallable, LoxFunction, Return
+from time import time
+
+
+class ClockCallable(LoxCallable):
+
+    def arity(self):
+        return 0
+
+    def call(self, interpreter, arguments):
+        return time()
+
+    def __str__(self):
+        return '<native fn>'
+
 
 class Interpreter(ExprVisitor, StmtVisitor):
 
-    environment = Environment()
+    globals = Environment()
+    environment = globals
+
+    def __init__(self):
+        self.globals.define('clock', ClockCallable())
 
     def interpret(self, statements):
         try:
@@ -100,6 +119,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visitExpressionStmt(self, stmt):
         self.evaluate(stmt.expression)
 
+    def visitFunctionStmt(self, stmt):
+        function = LoxFunction(stmt, self.environment)
+        self.environment.define(stmt.name.lexeme, function)
+        return None
+
     def visitIfStmt(self, stmt):
         if self.is_truthy(self.evaluate(stmt.condition)):
             self.execute(stmt.then_branch)
@@ -110,6 +134,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visitPrintStmt(self, stmt):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
+
+    def visitReturnStmt(self, stmt):
+        value = None
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+
+        raise Return(value)
 
     def visitVarStmt(self, stmt):
         value = None
@@ -168,3 +199,19 @@ class Interpreter(ExprVisitor, StmtVisitor):
                 return left * right
 
         return None
+
+    def visitCallExpr(self, expr):
+        callee = self.evaluate(expr.callee)
+
+        arguments = []
+        for argument in expr.arguments:
+            arguments.append(self.evaluate(argument))
+
+        if not isinstance(callee, LoxCallable):
+            raise RuntimeError(expr.paren, "Can only call functions and classes.")
+
+        if len(arguments) != callee.arity():
+            raise RuntimeError(expr.paren,
+                "Expected {} arguments but got {}.".format(callee.arity(), len(arguments)))
+
+        return callee.call(self, arguments)

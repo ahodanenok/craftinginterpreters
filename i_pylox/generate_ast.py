@@ -43,6 +43,7 @@ if __name__ == '__main__':
     define_ast(output_dir, "Expr", [
         'Assign: name, value',
         'Binary : left, operator, right',
+        'Call : callee, paren, arguments',
         'Grouping : expression',
         'Literal : value',
         'Logical : left, operator, right',
@@ -53,8 +54,10 @@ if __name__ == '__main__':
     define_ast(output_dir, "Stmt", [
         'Block : statements',
         'Expression : expression',
+        'Function : name, params, body',
         'If : condition, then_branch, else_branch',
         'Print : expression',
+        'Return : keyword, value',
         'Var : name, initializer',
         'While : condition, body'
     ])

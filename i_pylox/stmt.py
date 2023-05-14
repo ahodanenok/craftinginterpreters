@@ -6,10 +6,16 @@ class StmtVisitor:
     def visitExpressionStmt(self, stmt):
         pass
 
+    def visitFunctionStmt(self, stmt):
+        pass
+
     def visitIfStmt(self, stmt):
         pass
 
     def visitPrintStmt(self, stmt):
+        pass
+
+    def visitReturnStmt(self, stmt):
         pass
 
     def visitVarStmt(self, stmt):
@@ -37,6 +43,16 @@ class Expression(Stmt):
     def accept(self, visitor):
         return visitor.visitExpressionStmt(self)
 
+class Function(Stmt):
+
+    def __init__(self, name, params, body):
+        self.name = name
+        self.params = params
+        self.body = body
+
+    def accept(self, visitor):
+        return visitor.visitFunctionStmt(self)
+
 class If(Stmt):
 
     def __init__(self, condition, then_branch, else_branch):
@@ -54,6 +70,15 @@ class Print(Stmt):
 
     def accept(self, visitor):
         return visitor.visitPrintStmt(self)
+
+class Return(Stmt):
+
+    def __init__(self, keyword, value):
+        self.keyword = keyword
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visitReturnStmt(self)
 
 class Var(Stmt):
 

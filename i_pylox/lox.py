@@ -2,6 +2,7 @@ import sys
 import error
 from scanner import Scanner
 from parser import Parser
+from resolver import Resolver
 from interpreter import Interpreter
 from ast_printer import AstPrinter
 
@@ -31,6 +32,11 @@ def run(program):
     tokens = scanner.scan_tokens()
     parser = Parser(tokens)
     statements = parser.parse()
+
+    if error.hadError: return
+
+    resolver = Resolver(interpreter)
+    resolver.resolve(statements)
 
     if error.hadError: return
 

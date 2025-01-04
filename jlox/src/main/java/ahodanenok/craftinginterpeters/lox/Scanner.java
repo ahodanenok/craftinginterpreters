@@ -72,6 +72,8 @@ final class Scanner {
                     while (!isEnded() && peek() != '\n') {
                         advance();
                     }
+                } else if (match('*')) {
+                    skipBlockComment();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -112,7 +114,12 @@ final class Scanner {
             return false;
         }
 
-        return source.charAt(current++) == ch;
+        if (source.charAt(current) != ch) {
+            return false;
+        }
+
+        current++;
+        return true;
     }
 
     private char peek() {
@@ -197,6 +204,31 @@ final class Scanner {
             addToken(KEYWORDS.get(lexeme));
         } else {
             addToken(TokenType.IDENTIFIER, lexeme);
+        }
+    }
+
+    private void skipBlockComment() {
+        int level = 0;
+        while (!isEnded()) {
+            if (peek() == '\n') {
+                line++;
+            }
+
+            if (peek() == '/' && peekNext() == '*') {
+                advance();
+                advance();
+                level++;
+            } else if (peek() == '*' && peekNext() == '/') {
+                advance(); // consume *
+                advance(); // consume /
+                if (level == 0) {
+                    break;
+                } else {
+                    level--;
+                }
+            } else {
+                advance();
+            }
         }
     }
 }

@@ -54,10 +54,103 @@ public class ScannerTest {
     }
 
     @Test
-    public void testInlineCommentIgnored() {
+    public void testInlineCommentIgnored_NoContent_OneLine() {
         List<Token> tokens = new Scanner("// some comment").scan();
         assertEquals(1, tokens.size());
         assertTokenEquals(new Token(TokenType.EOF, "", null, 1), tokens.get(0));
+    }
+
+    @Test
+    public void testInlineCommentIgnored_NoContent_MutiLine() {
+        List<Token> tokens = new Scanner(
+            """
+            // some comment
+            // another \
+            """
+        ).scan();
+        assertEquals(1, tokens.size());
+        assertTokenEquals(new Token(TokenType.EOF, "", null, 2), tokens.get(0));
+    }
+
+    @Test
+    public void testInlineCommentsIgnored() {
+        List<Token> tokens = new Scanner(
+            """
+            // abc
+            var x = 10;//comment
+            // 12345
+            return;
+            // if
+            """
+        ).scan();
+        assertEquals(8, tokens.size());
+        assertTokenEquals(new Token(TokenType.VAR, "var", null, 2), tokens.get(0));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", "x", 2), tokens.get(1));
+        assertTokenEquals(new Token(TokenType.EQUAL, "=", null, 2), tokens.get(2));
+        assertTokenEquals(new Token(TokenType.NUMBER, "10", 10.0, 2), tokens.get(3));
+        assertTokenEquals(new Token(TokenType.SEMICOLON, ";", null, 2), tokens.get(4));
+        assertTokenEquals(new Token(TokenType.RETURN, "return", null, 4), tokens.get(5));
+        assertTokenEquals(new Token(TokenType.SEMICOLON, ";", null, 4), tokens.get(6));
+        assertTokenEquals(new Token(TokenType.EOF, "", null, 6), tokens.get(7));
+    }
+
+    @Test
+    public void testBlockCommentIgnored_NoContent_OneLine() {
+        List<Token> tokens = new Scanner("/* block */").scan();
+        assertEquals(1, tokens.size());
+        assertTokenEquals(new Token(TokenType.EOF, "", null, 1), tokens.get(0));
+    }
+
+    @Test
+    public void testBlockCommentIgnored_NoContent_MultiLine() {
+        List<Token> tokens = new Scanner("""
+        /* a
+         * bb
+         * ccc
+         */
+        """).scan();
+        assertEquals(1, tokens.size());
+        assertTokenEquals(new Token(TokenType.EOF, "", null, 5), tokens.get(0));
+    }
+
+    @Test
+    public void testBlockCommentsIgnored() {
+        List<Token> tokens = new Scanner("""
+        /* hello
+         * world
+         */
+        fun x
+        a/* + *//3 /* - y */
+        /*
+         test */
+        """).scan();
+        assertEquals(6, tokens.size());
+        assertTokenEquals(new Token(TokenType.FUN, "fun", null, 4), tokens.get(0));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", "x", 4), tokens.get(1));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "a", "a", 5), tokens.get(2));
+        assertTokenEquals(new Token(TokenType.SLASH, "/", null, 5), tokens.get(3));
+        assertTokenEquals(new Token(TokenType.NUMBER, "3", 3.0, 5), tokens.get(4));
+        assertTokenEquals(new Token(TokenType.EOF, "", null, 8), tokens.get(5));
+    }
+
+    @Test
+    public void testNestedBlockCommentsIgnored() {
+        List<Token> tokens = new Scanner("""
+        /*
+          /* 1 */
+          /* 2 /* 2.1 */
+
+            /* 2.2 /* 2.2.1 */ */
+         */
+        */
+        x; /* y
+        /* y / * z * /
+        */*/
+        """).scan();
+        assertEquals(3, tokens.size());
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", "x", 8), tokens.get(0));
+        assertTokenEquals(new Token(TokenType.SEMICOLON, ";", null, 8), tokens.get(1));
+        assertTokenEquals(new Token(TokenType.EOF, "", null, 11), tokens.get(2));
     }
 
     @ParameterizedTest
@@ -103,6 +196,16 @@ public class ScannerTest {
         assertEquals(2, tokens.size());
         assertTokenEquals(new Token(tokenType, str, null, 1), tokens.get(0));
         assertTokenEquals(new Token(TokenType.EOF, "", null, 1), tokens.get(1));
+    }
+
+    @Test
+    public void testDontSkipSymbolAfterSlash() {
+        List<Token> tokens = new Scanner("a/b").scan();
+        assertEquals(4, tokens.size());
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "a", "a", 1), tokens.get(0));
+        assertTokenEquals(new Token(TokenType.SLASH, "/", null, 1), tokens.get(1));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "b", "b", 1), tokens.get(2));
+        assertTokenEquals(new Token(TokenType.EOF, "", null, 1), tokens.get(3));
     }
 
     @ParameterizedTest

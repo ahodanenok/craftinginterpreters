@@ -85,7 +85,7 @@ public class ScannerTest {
         ).scan();
         assertEquals(8, tokens.size());
         assertTokenEquals(new Token(TokenType.VAR, "var", null, 2), tokens.get(0));
-        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", "x", 2), tokens.get(1));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", null, 2), tokens.get(1));
         assertTokenEquals(new Token(TokenType.EQUAL, "=", null, 2), tokens.get(2));
         assertTokenEquals(new Token(TokenType.NUMBER, "10", 10.0, 2), tokens.get(3));
         assertTokenEquals(new Token(TokenType.SEMICOLON, ";", null, 2), tokens.get(4));
@@ -126,8 +126,8 @@ public class ScannerTest {
         """).scan();
         assertEquals(6, tokens.size());
         assertTokenEquals(new Token(TokenType.FUN, "fun", null, 4), tokens.get(0));
-        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", "x", 4), tokens.get(1));
-        assertTokenEquals(new Token(TokenType.IDENTIFIER, "a", "a", 5), tokens.get(2));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", null, 4), tokens.get(1));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "a", null, 5), tokens.get(2));
         assertTokenEquals(new Token(TokenType.SLASH, "/", null, 5), tokens.get(3));
         assertTokenEquals(new Token(TokenType.NUMBER, "3", 3.0, 5), tokens.get(4));
         assertTokenEquals(new Token(TokenType.EOF, "", null, 8), tokens.get(5));
@@ -148,7 +148,7 @@ public class ScannerTest {
         */*/
         """).scan();
         assertEquals(3, tokens.size());
-        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", "x", 8), tokens.get(0));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "x", null, 8), tokens.get(0));
         assertTokenEquals(new Token(TokenType.SEMICOLON, ";", null, 8), tokens.get(1));
         assertTokenEquals(new Token(TokenType.EOF, "", null, 11), tokens.get(2));
     }
@@ -202,9 +202,9 @@ public class ScannerTest {
     public void testDontSkipSymbolAfterSlash() {
         List<Token> tokens = new Scanner("a/b").scan();
         assertEquals(4, tokens.size());
-        assertTokenEquals(new Token(TokenType.IDENTIFIER, "a", "a", 1), tokens.get(0));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "a", null, 1), tokens.get(0));
         assertTokenEquals(new Token(TokenType.SLASH, "/", null, 1), tokens.get(1));
-        assertTokenEquals(new Token(TokenType.IDENTIFIER, "b", "b", 1), tokens.get(2));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, "b", null, 1), tokens.get(2));
         assertTokenEquals(new Token(TokenType.EOF, "", null, 1), tokens.get(3));
     }
 
@@ -243,7 +243,7 @@ public class ScannerTest {
     public void testRecognizeIdentifier(String str) {
         List<Token> tokens = new Scanner(str).scan();
         assertEquals(2, tokens.size());
-        assertTokenEquals(new Token(TokenType.IDENTIFIER, str, str, 1), tokens.get(0));
+        assertTokenEquals(new Token(TokenType.IDENTIFIER, str, null, 1), tokens.get(0));
         assertTokenEquals(new Token(TokenType.EOF, "", null, 1), tokens.get(1));
     }
 

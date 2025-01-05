@@ -203,7 +203,7 @@ final class Scanner {
         if (KEYWORDS.containsKey(lexeme)) {
             addToken(KEYWORDS.get(lexeme));
         } else {
-            addToken(TokenType.IDENTIFIER, lexeme);
+            addToken(TokenType.IDENTIFIER);
         }
     }
 

@@ -33,6 +33,19 @@ public class GenerateAst {
             writer.println("package ahodanenok.craftinginterpreters.lox;");
             writer.println();
             writer.println("abstract class " + baseClassName + " {");
+            writer.println();
+            writer.println("    abstract <R> R accept(Visitor<R> visitor);");
+
+            writer.println();
+            writer.println("    interface Visitor<R> {");
+            for (String type : types) {
+                String typeClassName = type.split(":")[0].trim();
+
+                writer.println();
+                writer.println("        R visit" + typeClassName + baseClassName
+                    + "(" + typeClassName + " " + baseClassName.toLowerCase() + ");");
+            }
+            writer.println("    }");
 
             for (String type : types) {
                 String[] parts = type.split(":");
@@ -55,6 +68,12 @@ public class GenerateAst {
                     String fieldName = field.trim().split("\\s+")[1].trim();
                     writer.println("            this." + fieldName + " = " + fieldName + ";");
                 }
+                writer.println("        }");
+
+                writer.println();
+                writer.println("        @Override");
+                writer.println("        <R> R accept(Visitor<R> visitor) {");
+                writer.println("            return visitor.visit" + typeClassName + baseClassName + "(this);");
                 writer.println("        }");
 
                 writer.println("    }");

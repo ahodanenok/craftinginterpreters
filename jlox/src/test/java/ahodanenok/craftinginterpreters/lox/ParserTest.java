@@ -272,4 +272,25 @@ public class ParserTest {
             Expression.Literal.class, binary.right);
         assertEquals(2.0, literal.value);
     }
+
+    @Test
+    public void testParseExpression_Comma() {
+        List<Token> tokens = List.of(
+            new Token(TokenType.STRING, "foo", "foo", 1),
+            new Token(TokenType.COMMA, ",", null, 1),
+            new Token(TokenType.NUMBER, "10", 10.0, 1),
+            new Token(TokenType.EOF, "", null, 1));
+
+        Expression expression = new Parser(tokens).parse();
+
+        Expression.Binary binary = assertInstanceOf(
+            Expression.Binary.class, expression);
+        assertEquals(binary.operator.type, TokenType.COMMA);
+        Expression.Literal literal = assertInstanceOf(
+            Expression.Literal.class, binary.left);
+        assertEquals("foo", literal.value);
+        literal = assertInstanceOf(
+            Expression.Literal.class, binary.right);
+        assertEquals(10.0, literal.value);
+    }
 }

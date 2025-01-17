@@ -20,7 +20,18 @@ final class Parser {
     }
 
     private Expression expression() {
-        return equality();
+        return comma();
+    }
+
+    private Expression comma() {
+        Expression left = equality();
+        while (match(TokenType.COMMA)) {
+            Token operator = previous();
+            Expression right = equality();
+            left = new Expression.Binary(operator, left, right);
+        }
+
+        return left;
     }
 
     private Expression equality() {

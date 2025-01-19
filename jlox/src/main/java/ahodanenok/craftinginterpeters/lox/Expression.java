@@ -12,6 +12,8 @@ abstract class Expression {
 
         R visitBinaryExpression(Binary expression);
 
+        R visitTernaryExpression(Ternary expression);
+
         R visitGroupingExpression(Grouping expression);
     }
 
@@ -60,6 +62,24 @@ abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitBinaryExpression(this);
+        }
+    }
+
+    final static class Ternary extends Expression {
+
+        final Expression condition;
+        final Expression left;
+        final Expression right;
+
+        Ternary(Expression condition, Expression left, Expression right) {
+            this.condition = condition;
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitTernaryExpression(this);
         }
     }
 

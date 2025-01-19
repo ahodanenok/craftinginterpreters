@@ -38,6 +38,11 @@ public class AstPrinter implements Expression.Visitor<String> {
     }
 
     @Override
+    public String visitTernaryExpression(Expression.Ternary expression) {
+        return parethesize("?:", expression.condition, expression.left, expression.right);
+    }
+
+    @Override
     public String visitGroupingExpression(Expression.Grouping expression) {
         return parethesize("group", expression.expression);
     }

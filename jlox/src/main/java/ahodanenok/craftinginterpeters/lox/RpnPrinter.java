@@ -57,6 +57,12 @@ public final class RpnPrinter implements Expression.Visitor<Void> {
     }
 
     @Override
+    public Void visitTernaryExpression(Expression.Ternary expression) {
+        rpn("?:", expression.condition, expression.left, expression.right);
+        return null;
+    }
+
+    @Override
     public Void visitGroupingExpression(Expression.Grouping expression) {
         expression.expression.accept(this);
         return null;

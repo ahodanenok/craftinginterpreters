@@ -20,7 +20,23 @@ final class Parser {
     }
 
     private Expression expression() {
-        return comma();
+        return ternary();
+    }
+
+    private Expression ternary() {
+        return ternary(comma());
+    }
+
+    private Expression ternary(Expression condition) {
+        Expression expression = condition;
+        if (match(TokenType.QUESTION)) {
+            Expression left = ternary();
+            consume(TokenType.COLON, "Expect ':' after expression");
+            Expression right = ternary();
+            expression = new Expression.Ternary(condition, left, ternary(right));
+        }
+
+        return expression;
     }
 
     private Expression comma() {

@@ -166,6 +166,8 @@ public class ScannerTest {
         /      , SLASH
         *      , STAR
         ;      , SEMICOLON
+        :      , COLON
+        ?      , QUESTION
         !      , BANG
         !=     , BANG_EQUAL
         =      , EQUAL

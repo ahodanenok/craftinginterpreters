@@ -40,59 +40,110 @@ final class Parser {
     }
 
     private Expression comma() {
-        Expression left = equality();
+        Expression left = commaMissingLeft();
         while (match(TokenType.COMMA)) {
             Token operator = previous();
-            Expression right = equality();
+            Expression right = commaMissingLeft();
             left = new Expression.Binary(operator, left, right);
         }
 
         return left;
+    }
+
+    private Expression commaMissingLeft() {
+        if (match(TokenType.COMMA)) {
+            Token operator = previous();
+            equality();
+            throw error(operator, "Expect left-hand operand");
+        }
+
+        return equality();
     }
 
     private Expression equality() {
-        Expression left = comparison();
+        Expression left = equalityMissingLeft();
         while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
             Token operator = previous();
-            Expression right = comparison();
+            Expression right = equalityMissingLeft();
             left = new Expression.Binary(operator, left, right);
         }
 
         return left;
+    }
+
+    private Expression equalityMissingLeft() {
+        if (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
+            Token operator = previous();
+            comparison();
+            throw error(operator, "Expect left-hand operand");
+        }
+
+        return comparison();
     }
 
     private Expression comparison() {
-        Expression left = term();
+        Expression left = comparisonMissingLeft();
         while (match(TokenType.GREATER, TokenType.GREATER_EQUAL,
                 TokenType.LESS, TokenType.LESS_EQUAL)) {
             Token operator = previous();
-            Expression right = term();
+            Expression right = comparisonMissingLeft();
             left = new Expression.Binary(operator, left, right);
         }
 
         return left;
+    }
+
+    private Expression comparisonMissingLeft() {
+        if (match(TokenType.GREATER, TokenType.GREATER_EQUAL,
+                TokenType.LESS, TokenType.LESS_EQUAL)) {
+            Token operator = previous();
+            term();
+            throw error(operator, "Expect left-hand operand");
+        }
+
+        return term();
     }
 
     private Expression term() {
-        Expression left = factor();
+        Expression left = termMissingLeft();
         while (match(TokenType.PLUS, TokenType.MINUS)) {
             Token operator = previous();
-            Expression right = factor();
+            Expression right = termMissingLeft();
             left = new Expression.Binary(operator, left, right);
         }
 
         return left;
     }
 
+    private Expression termMissingLeft() {
+        if (match(TokenType.PLUS)) {
+            Token operator = previous();
+            factor();
+            throw error(operator, "Expect left-hand operand");
+        }
+
+        return factor();
+    }
+
     private Expression factor() {
-        Expression left = unary();
+        Expression left = factorMissingLeft();
         while (match(TokenType.SLASH, TokenType.STAR)) {
             Token operator = previous();
-            Expression right = unary();
+            Expression right = factorMissingLeft();
             left = new Expression.Binary(operator, left, right);
         }
 
         return left;
+    }
+
+    private Expression factorMissingLeft() {
+        if (match(TokenType.SLASH, TokenType.STAR)) {
+            Token operator = previous();
+            unary();
+            throw error(operator, "Expect left-hand operand");
+        }
+
+        return unary();
     }
 
     private Expression unary() {

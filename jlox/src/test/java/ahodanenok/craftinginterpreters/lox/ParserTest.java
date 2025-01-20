@@ -183,6 +183,22 @@ public class ParserTest {
 
     @ParameterizedTest
     @CsvSource(textBlock = """
+        STAR,   *
+        SLASH,  /
+    """)
+    public void testParseExpression_Factor_MissingLeft(TokenType tokenType, String lexeme) {
+        List<Token> tokens = List.of(
+            new Token(tokenType, lexeme, null, 1),
+            new Token(TokenType.TRUE, "true", null, 1),
+            new Token(TokenType.EOF, "", null, 1));
+
+        Expression expression = new Parser(tokens).parse();
+
+        assertEquals(null, expression);
+    }
+
+    @ParameterizedTest
+    @CsvSource(textBlock = """
         MINUS, -
         PLUS,  +
     """)
@@ -231,6 +247,21 @@ public class ParserTest {
         assertEquals(binary_3.operator.type, tokenType);
         assertEquals(1.0, assertInstanceOf(Expression.Literal.class, binary_3.left).value);
         assertEquals(2.0, assertInstanceOf(Expression.Literal.class, binary_3.right).value);
+    }
+
+    @ParameterizedTest
+    @CsvSource(textBlock = """
+        PLUS,  +
+    """)
+    public void testParseExpression_Term_MissingLeft(TokenType tokenType, String lexeme) {
+        List<Token> tokens = List.of(
+            new Token(tokenType, lexeme, null, 1),
+            new Token(TokenType.NUMBER, "20", 20.0, 1),
+            new Token(TokenType.EOF, "", null, 1));
+
+        Expression expression = new Parser(tokens).parse();
+
+        assertEquals(null, expression);
     }
 
     @ParameterizedTest
@@ -291,6 +322,24 @@ public class ParserTest {
 
     @ParameterizedTest
     @CsvSource(textBlock = """
+        GREATER,        >
+        GREATER_EQUAL,  >=
+        LESS,           <
+        LESS_EQUAL,     <=
+    """)
+    public void testParseExpression_Comparison_MissingLeft(TokenType tokenType, String lexeme) {
+        List<Token> tokens = List.of(
+            new Token(tokenType, lexeme, null, 1),
+            new Token(TokenType.STRING, "y", "y", 1),
+            new Token(TokenType.EOF, "", null, 1));
+
+        Expression expression = new Parser(tokens).parse();
+
+        assertEquals(null, expression);
+    }
+
+    @ParameterizedTest
+    @CsvSource(textBlock = """
         EQUAL_EQUAL,  ==
         BANG_EQUAL,   !=
     """)
@@ -341,6 +390,22 @@ public class ParserTest {
         assertEquals(2.0, assertInstanceOf(Expression.Literal.class, binary_3.right).value);
     }
 
+    @ParameterizedTest
+    @CsvSource(textBlock = """
+        EQUAL_EQUAL,  ==
+        BANG_EQUAL,   !=
+    """)
+    public void testParseExpression_Equality_MissingLeft(TokenType tokenType, String lexeme) {
+        List<Token> tokens = List.of(
+            new Token(tokenType, lexeme, null, 1),
+            new Token(TokenType.NUMBER, "2", 2.0, 1),
+            new Token(TokenType.EOF, "", null, 1));
+
+        Expression expression = new Parser(tokens).parse();
+
+        assertEquals(null, expression);
+    }
+
     @Test
     public void testParseExpression_Comma() {
         List<Token> tokens = List.of(
@@ -383,6 +448,18 @@ public class ParserTest {
         assertEquals(binary_3.operator.type, TokenType.COMMA);
         assertEquals(1.0, assertInstanceOf(Expression.Literal.class, binary_3.left).value);
         assertEquals(2.0, assertInstanceOf(Expression.Literal.class, binary_3.right).value);
+    }
+
+    @Test
+    public void testParseExpression_Comma_MissingLeft() {
+        List<Token> tokens = List.of(
+            new Token(TokenType.COMMA, ",", null, 1),
+            new Token(TokenType.NUMBER, "10", 10.0, 1),
+            new Token(TokenType.EOF, "", null, 1));
+
+        Expression expression = new Parser(tokens).parse();
+
+        assertEquals(null, expression);
     }
 
     @Test

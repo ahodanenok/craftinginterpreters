@@ -10,7 +10,10 @@ import java.util.List;
 
 public final class Lox {
 
+    private static final Interpreter interpreter = new Interpreter();
+
     private static boolean hadError;
+    private static boolean hadRuntimeError;
 
     public static void main(String... args) throws Exception {
         if (args.length > 1) {
@@ -26,10 +29,17 @@ public final class Lox {
     private static void runFile(String filePath) throws IOException {
         byte[] content = Files.readAllBytes(Paths.get(filePath));
         run(new String(content, Charset.defaultCharset()));
+
+        if (hadError) {
+            System.exit(65);
+        } else if (hadRuntimeError) {
+            System.exit(70);
+        }
     }
 
     private static void runPrompt() throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader reader =
+            new BufferedReader(new InputStreamReader(System.in));
 
         String line;
         while (true) {
@@ -53,13 +63,17 @@ public final class Lox {
 
         Parser parser = new Parser(tokens);
         Expression expression = parser.parse();
+        if (hadError) {
+            return;
+        }
 
-        System.out.println(new AstPrinter().print(expression));
+        interpreter.interpret(expression);
     }
 
     private static void report(int line, String where, String msg) {
         hadError = true;
-        System.err.println(String.format("line %d | error %s: %s", line, where, msg));
+        System.err.println(String.format(
+            "line %d | error %s: %s", line, where, msg));
     }
 
     static void error(int line, String msg) {
@@ -72,5 +86,11 @@ public final class Lox {
         } else {
             report(token.line, " at '" + token.lexeme + "'", msg);
         }
+    }
+
+    static void runtimeError(Token token, String msg) {
+        System.err.println(String.format(
+            "line %d | %s: %s", token.line, token.lexeme, msg));
+        hadRuntimeError = true;
     }
 }

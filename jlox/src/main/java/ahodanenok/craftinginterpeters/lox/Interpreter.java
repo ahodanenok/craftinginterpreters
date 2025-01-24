@@ -65,6 +65,8 @@ class Interpreter implements Expression.Visitor<Object> {
 
                 if (left instanceof String a && right instanceof String b) {
                     yield a + b;
+                } else if (left instanceof String || right instanceof String) {
+                    yield stringify(left) + stringify(right);
                 }
 
                 throw new RuntimeError(

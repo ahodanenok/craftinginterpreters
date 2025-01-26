@@ -62,12 +62,12 @@ public final class Lox {
         }
 
         Parser parser = new Parser(tokens);
-        Expression expression = parser.parse();
+        List<Statement> program = parser.parse();
         if (hadError) {
             return;
         }
 
-        interpreter.interpret(expression);
+        interpreter.interpret(program);
     }
 
     private static void report(int line, String where, String msg) {

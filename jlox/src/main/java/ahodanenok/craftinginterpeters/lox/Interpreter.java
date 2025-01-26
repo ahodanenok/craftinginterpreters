@@ -1,16 +1,31 @@
 package ahodanenok.craftinginterpreters.lox;
 
+import java.util.List;
 import java.util.Objects;
 
-class Interpreter implements Expression.Visitor<Object> {
+class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
-    void interpret(Expression expression) {
+    void interpret(List<Statement> program) {
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (Statement statement : program) {
+                execute(statement);
+            }
         } catch (RuntimeError e) {
             Lox.runtimeError(e.token, e.getMessage());
         }
+    }
+
+    @Override
+    public Void visitExprStatement(Statement.Expr statement) {
+        evaluate(statement.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStatement(Statement.Print statement) {
+        Object value = evaluate(statement.expression);
+        System.out.println(stringify(value));
+        return null;
     }
 
     @Override
@@ -102,6 +117,10 @@ class Interpreter implements Expression.Visitor<Object> {
 
     private Object evaluate(Expression expression) {
         return expression.accept(this);
+    }
+
+    private void execute(Statement statement) {
+        statement.accept(this);
     }
 
     private boolean isTruthy(Object value) {

@@ -24,6 +24,10 @@ public class GenerateAst {
             "Ternary : Expression condition, Expression left, Expression right",
             "Grouping : Expression expression"
         ));
+        defineAst(outputDir, "Statement", Arrays.asList(
+            "Expr : Expression expression",
+            "Print : Expression expression"
+        ));
     }
 
     private static void defineAst(

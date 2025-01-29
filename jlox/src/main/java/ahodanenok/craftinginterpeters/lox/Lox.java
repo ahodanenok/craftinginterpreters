@@ -28,7 +28,7 @@ public final class Lox {
 
     private static void runFile(String filePath) throws IOException {
         byte[] content = Files.readAllBytes(Paths.get(filePath));
-        run(new String(content, Charset.defaultCharset()));
+        run(new String(content, "UTF-8"));
 
         if (hadError) {
             System.exit(65);
@@ -73,7 +73,7 @@ public final class Lox {
     private static void report(int line, String where, String msg) {
         hadError = true;
         System.err.println(String.format(
-            "line %d | error %s: %s", line, where, msg));
+            "[line %d] Error%s: %s", line, where, msg));
     }
 
     static void error(int line, String msg) {
@@ -89,8 +89,7 @@ public final class Lox {
     }
 
     static void runtimeError(Token token, String msg) {
-        System.err.println(String.format(
-            "line %d | %s: %s", token.line, token.lexeme, msg));
+        System.err.println(msg + "\n[line " + token.line + "]");
         hadRuntimeError = true;
     }
 }

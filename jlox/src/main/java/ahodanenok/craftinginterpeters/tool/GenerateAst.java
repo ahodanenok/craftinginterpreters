@@ -22,11 +22,15 @@ public class GenerateAst {
             "Unary : Token operator, Expression expression" ,
             "Binary : Token operator, Expression left, Expression right",
             "Ternary : Expression condition, Expression left, Expression right",
-            "Grouping : Expression expression"
+            "Grouping : Expression expression",
+            "Variable : Token name",
+            "Assign : Token name, Expression expression"
         ));
         defineAst(outputDir, "Statement", Arrays.asList(
             "Expr : Expression expression",
-            "Print : Expression expression"
+            "Print : Expression expression",
+            "Var : Token name, Expression initializer",
+            "Block : java.util.List<Statement> statements"
         ));
     }
 

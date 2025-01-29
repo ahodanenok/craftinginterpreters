@@ -5,6 +5,8 @@ import java.util.Objects;
 
 class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
+    private Environment environment = new Environment();
+
     void interpret(List<Statement> program) {
         try {
             for (Statement statement : program) {
@@ -26,6 +28,34 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         Object value = evaluate(statement.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+    @Override
+    public Void visitVarStatement(Statement.Var statement) {
+        Object value = null;
+        if (statement.initializer != null) {
+            value = evaluate(statement.initializer);
+        }
+        environment.define(statement.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Void visitBlockStatement(Statement.Block statement) {
+        executeBlock(statement.statements, new Environment(environment));
+        return null;
+    }
+
+    private void executeBlock(List<Statement> statements, Environment currentEnvironment) {
+        Environment previousEnvironment = this.environment;
+        try {
+            this.environment = currentEnvironment;
+            for (Statement statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previousEnvironment;
+        }
     }
 
     @Override
@@ -80,13 +110,15 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
                 if (left instanceof String a && right instanceof String b) {
                     yield a + b;
-                } else if (left instanceof String || right instanceof String) {
-                    yield stringify(left) + stringify(right);
                 }
+                // conflicts with the test suite
+                // else if (left instanceof String || right instanceof String) {
+                //     yield stringify(left) + stringify(right);
+                // }
 
                 throw new RuntimeError(
                     expression.operator,
-                    "Operands must be two numbers or two strings");
+                    "Operands must be two numbers or two strings.");
             }
             case STAR -> {
                 checkNumberOperands(expression.operator, left, right);
@@ -115,6 +147,18 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         return evaluate(expression.expression);
     }
 
+    @Override
+    public Object visitVariableExpression(Expression.Variable expression) {
+        return environment.get(expression.name);
+    }
+
+    @Override
+    public Object visitAssignExpression(Expression.Assign expression) {
+        Object value = evaluate(expression.expression);
+        environment.assign(expression.name, value);
+        return value;
+    }
+
     private Object evaluate(Expression expression) {
         return expression.accept(this);
     }
@@ -139,13 +183,13 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
     private void checkNumberOperand(Token operator, Object operand) {
         if (!(operand instanceof Double)) {
-            throw new RuntimeError(operator, "Operand must be a number");
+            throw new RuntimeError(operator, "Operand must be a number.");
         }
     }
 
     private void checkNumberOperands(Token operator, Object left, Object right) {
         if (!(left instanceof Double) || !(right instanceof Double)) {
-            throw new RuntimeError(operator, "Operands must be numbers");
+            throw new RuntimeError(operator, "Operands must be numbers.");
         }
     }
 

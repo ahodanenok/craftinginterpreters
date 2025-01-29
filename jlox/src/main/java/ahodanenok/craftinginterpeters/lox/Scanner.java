@@ -188,7 +188,7 @@ final class Scanner {
         }
 
         if (peek() != '"') {
-            Lox.error(line, "Unterminated string");
+            Lox.error(line, "Unterminated string.");
             return;
         }
         advance(); // consume "

@@ -15,6 +15,10 @@ abstract class Expression {
         R visitTernaryExpression(Ternary expression);
 
         R visitGroupingExpression(Grouping expression);
+
+        R visitVariableExpression(Variable expression);
+
+        R visitAssignExpression(Assign expression);
     }
 
     final static class Literal extends Expression {
@@ -94,6 +98,36 @@ abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitGroupingExpression(this);
+        }
+    }
+
+    final static class Variable extends Expression {
+
+        final Token name;
+
+        Variable(Token name) {
+            this.name = name;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVariableExpression(this);
+        }
+    }
+
+    final static class Assign extends Expression {
+
+        final Token name;
+        final Expression expression;
+
+        Assign(Token name, Expression expression) {
+            this.name = name;
+            this.expression = expression;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitAssignExpression(this);
         }
     }
 }

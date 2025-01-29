@@ -47,6 +47,16 @@ public class AstPrinter implements Expression.Visitor<String> {
         return parethesize("group", expression.expression);
     }
 
+    @Override
+    public String visitVariableExpression(Expression.Variable expression) {
+        return String.format("(variable %s)", expression.name.lexeme);
+    }
+
+    @Override
+    public String visitAssignExpression(Expression.Assign expression) {
+        return String.format("(assign %s %s)", expression.name.lexeme, expression.expression.accept(this));
+    }
+
     private String parethesize(String type, Expression... expressions) {
         StringBuilder sb = new StringBuilder();
         sb.append("(").append(type);

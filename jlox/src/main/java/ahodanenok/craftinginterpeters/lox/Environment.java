@@ -1,11 +1,14 @@
 package ahodanenok.craftinginterpreters.lox;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 class Environment {
 
     private final Map<String, Object> values = new HashMap<>();
+    private final Set<String> initialized = new HashSet<>();
     private final Environment parent;
 
     Environment() {
@@ -14,6 +17,10 @@ class Environment {
 
     Environment(Environment parent) {
         this.parent = parent;
+    }
+
+    void markInitialized(String name) {
+        initialized.add(name);
     }
 
     void define(String name, Object value) {
@@ -37,6 +44,14 @@ class Environment {
 
     Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
+            if (!initialized.contains(name.lexeme)) {
+                // makes variable initialization required
+                // conflicts with the test suite
+                // throw new RuntimeError(
+                //     name,
+                //     String.format("Unitialized variable '%s'.", name.lexeme));
+            }
+
             return values.get(name.lexeme);
         }
 

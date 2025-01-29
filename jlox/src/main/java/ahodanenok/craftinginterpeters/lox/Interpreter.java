@@ -37,6 +37,10 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
             value = evaluate(statement.initializer);
         }
         environment.define(statement.name.lexeme, value);
+        if (statement.initializer != null) {
+            environment.markInitialized(statement.name.lexeme);
+        }
+
         return null;
     }
 
@@ -156,6 +160,7 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     public Object visitAssignExpression(Expression.Assign expression) {
         Object value = evaluate(expression.expression);
         environment.assign(expression.name, value);
+        environment.markInitialized(expression.name.lexeme);
         return value;
     }
 

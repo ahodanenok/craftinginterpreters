@@ -14,6 +14,7 @@ public final class Lox {
 
     private static boolean hadError;
     private static boolean hadRuntimeError;
+    private static boolean suppressErrorMessages;
 
     public static void main(String... args) throws Exception {
         if (args.length > 1) {
@@ -50,7 +51,7 @@ public final class Lox {
             }
 
             hadError = false;
-            run(line);
+            runPrompt(line);
         }
     }
 
@@ -70,10 +71,48 @@ public final class Lox {
         interpreter.interpret(program);
     }
 
+    private static void runPrompt(String source) {
+        Scanner scanner = new Scanner(source);
+        List<Token> tokens = scanner.scan();
+        if (hadError) {
+            return;
+        }
+
+        List<Statement> program = null;
+        Parser parser = new Parser(tokens);
+
+        Expression expression;
+        try {
+            suppressErrorMessages = true;
+            expression = parser.parseExpression();
+        } finally {
+            suppressErrorMessages = false;
+        }
+
+        if (!hadError) {
+            program = List.of(new Statement.Print(expression));
+        } else {
+            hadError = false;
+            program = parser.parse();
+        }
+
+        if (program.size() == 1 && program.get(0) instanceof Statement.Expr expr) {
+            program = List.of(new Statement.Print(expr.expression));
+        }
+
+        if (hadError) {
+            return;
+        }
+
+        interpreter.interpret(program);
+    }
+
     private static void report(int line, String where, String msg) {
         hadError = true;
-        System.err.println(String.format(
-            "[line %d] Error%s: %s", line, where, msg));
+        if (!suppressErrorMessages) {
+            System.err.println(String.format(
+                "[line %d] Error%s: %s", line, where, msg));
+        }
     }
 
     static void error(int line, String msg) {
@@ -89,7 +128,9 @@ public final class Lox {
     }
 
     static void runtimeError(Token token, String msg) {
-        System.err.println(msg + "\n[line " + token.line + "]");
+        if (!suppressErrorMessages) {
+            System.err.println(msg + "\n[line " + token.line + "]");
+        }
         hadRuntimeError = true;
     }
 }

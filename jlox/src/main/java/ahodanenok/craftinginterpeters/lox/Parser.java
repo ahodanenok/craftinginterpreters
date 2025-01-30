@@ -21,6 +21,14 @@ final class Parser {
         return program;
     }
 
+    Expression parseExpression() {
+        try {
+            return expression();
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
     private Statement declaration() {
         try {
             if (match(TokenType.VAR)) {

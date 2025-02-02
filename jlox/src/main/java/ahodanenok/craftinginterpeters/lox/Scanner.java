@@ -26,6 +26,7 @@ final class Scanner {
         KEYWORDS.put("true", TokenType.TRUE);
         KEYWORDS.put("var", TokenType.VAR);
         KEYWORDS.put("while", TokenType.WHILE);
+        KEYWORDS.put("break", TokenType.BREAK);
     }
 
     private final String source;

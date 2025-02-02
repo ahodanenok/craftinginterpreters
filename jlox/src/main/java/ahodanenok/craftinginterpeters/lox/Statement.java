@@ -17,6 +17,8 @@ abstract class Statement {
         R visitIfStatement(If statement);
 
         R visitWhileStatement(While statement);
+
+        R visitBreakStatement(Break statement);
     }
 
     final static class Expr extends Statement {
@@ -108,6 +110,20 @@ abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitWhileStatement(this);
+        }
+    }
+
+    final static class Break extends Statement {
+
+        final Token keyword;
+
+        Break(Token keyword) {
+            this.keyword = keyword;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitBreakStatement(this);
         }
     }
 }

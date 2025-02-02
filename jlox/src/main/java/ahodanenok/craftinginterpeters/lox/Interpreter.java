@@ -1,11 +1,13 @@
 package ahodanenok.craftinginterpreters.lox;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
     private Environment environment = new Environment();
+    private LinkedList<Boolean> loopBroken = new LinkedList<>();
 
     void interpret(List<Statement> program) {
         try {
@@ -74,9 +76,23 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
     @Override
     public Void visitWhileStatement(Statement.While statement) {
-        while (isTruthy(evaluate(statement.condition))) {
-            execute(statement.body);
+        loopBroken.push(false);
+        try {
+            while (isTruthy(evaluate(statement.condition)) && !loopBroken.peek()) {
+                execute(statement.body);
+            }
+        } finally {
+            loopBroken.pop();
         }
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStatement(Statement.Break statement) {
+        if (loopBroken.size() == 0) {
+            throw new RuntimeError(statement.keyword, "No enclosing loop.");
+        }
+        loopBroken.set(0, true);
         return null;
     }
 
@@ -205,6 +221,10 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     }
 
     private void execute(Statement statement) {
+        if (loopBroken.size() > 0 && loopBroken.peek()) {
+            return;
+        }
+
         statement.accept(this);
     }
 

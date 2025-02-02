@@ -64,6 +64,8 @@ final class Parser {
             return whileStatement();
         } else if (match(TokenType.FOR)) {
             return forStatement();
+        } else if (match(TokenType.BREAK)) {
+            return breakStatement();
         } else {
             return expressionStatement();
         }
@@ -143,6 +145,12 @@ final class Parser {
         }
 
         return body;
+    }
+
+    private Statement breakStatement() {
+        Statement statement = new Statement.Break(previous());
+        consume(TokenType.SEMICOLON, "Expect ';' after 'break'.");
+        return statement;
     }
 
     private Statement expressionStatement() {

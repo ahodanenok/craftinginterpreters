@@ -33,7 +33,8 @@ public class GenerateAst {
             "Var : Token name, Expression initializer",
             "Block : java.util.List<Statement> statements",
             "If : Expression condition, Statement thenBranch, Statement elseBranch",
-            "While : Expression condition, Statement body"
+            "While : Expression condition, Statement body",
+            "Break : Token keyword"
         ));
     }
 
@@ -62,7 +63,7 @@ public class GenerateAst {
             for (String type : types) {
                 String[] parts = type.split(":");
                 String typeClassName = parts[0].trim();
-                String[] fields = parts[1].split(",");
+                String[] fields = parts.length > 1 ? parts[1].split(",") : new String[0];
 
                 writer.println();
                 writer.println("    final static class " + typeClassName + " extends " + baseClassName + " {");

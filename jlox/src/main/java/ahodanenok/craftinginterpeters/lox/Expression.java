@@ -19,6 +19,8 @@ abstract class Expression {
         R visitVariableExpression(Variable expression);
 
         R visitAssignExpression(Assign expression);
+
+        R visitLogicalExpression(Logical expression);
     }
 
     final static class Literal extends Expression {
@@ -128,6 +130,24 @@ abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitAssignExpression(this);
+        }
+    }
+
+    final static class Logical extends Expression {
+
+        final Token operator;
+        final Expression left;
+        final Expression right;
+
+        Logical(Token operator, Expression left, Expression right) {
+            this.operator = operator;
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLogicalExpression(this);
         }
     }
 }

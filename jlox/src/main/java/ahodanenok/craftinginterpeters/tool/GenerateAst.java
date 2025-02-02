@@ -24,13 +24,16 @@ public class GenerateAst {
             "Ternary : Expression condition, Expression left, Expression right",
             "Grouping : Expression expression",
             "Variable : Token name",
-            "Assign : Token name, Expression expression"
+            "Assign : Token name, Expression expression",
+            "Logical : Token operator, Expression left, Expression right"
         ));
         defineAst(outputDir, "Statement", Arrays.asList(
             "Expr : Expression expression",
             "Print : Expression expression",
             "Var : Token name, Expression initializer",
-            "Block : java.util.List<Statement> statements"
+            "Block : java.util.List<Statement> statements",
+            "If : Expression condition, Statement thenBranch, Statement elseBranch",
+            "While : Expression condition, Statement body"
         ));
     }
 

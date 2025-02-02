@@ -58,6 +58,12 @@ final class Parser {
             return printStatement();
         } else if (match(TokenType.LEFT_BRACE)) {
             return new Statement.Block(block());
+        } else if (match(TokenType.IF)) {
+            return ifStatement();
+        } else if (match(TokenType.WHILE)) {
+            return whileStatement();
+        } else if (match(TokenType.FOR)) {
+            return forStatement();
         } else {
             return expressionStatement();
         }
@@ -77,6 +83,66 @@ final class Parser {
         consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
 
         return statements;
+    }
+
+    private Statement ifStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+        Expression condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Statement thenBranch = statement();
+        Statement elseBranch = null;
+        if (match(TokenType.ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Statement.If(condition, thenBranch, elseBranch);
+    }
+
+    private Statement whileStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+        Expression condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        Statement body = statement();
+        return new Statement.While(condition, body);
+    }
+
+    private Statement forStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+        Statement initializer;
+        if (match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (match(TokenType.VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expression condition;
+        if (!check(TokenType.SEMICOLON)) {
+            condition = expression();
+        } else {
+            condition = new Expression.Literal(true);
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+        Expression increment = null;
+        if (!check(TokenType.RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        Statement body = statement();
+        if (increment != null) {
+            body = new Statement.Block(List.of(
+                body, new Statement.Expr(increment)));
+        }
+        body = new Statement.While(condition, body);
+        if (initializer != null) {
+            body = new Statement.Block(List.of(initializer, body));
+        }
+
+        return body;
     }
 
     private Statement expressionStatement() {
@@ -135,11 +201,33 @@ final class Parser {
     private Expression commaMissingLeft() {
         if (match(TokenType.COMMA)) {
             Token operator = previous();
-            equality();
+            or();
             throw error(operator, "Expect left-hand operand.");
         }
 
-        return equality();
+        return or();
+    }
+
+    private Expression or() {
+        Expression left = and();
+        while (match(TokenType.OR)) {
+            Token operator = previous();
+            Expression right = and();
+            left = new Expression.Logical(operator, left, right);
+        }
+
+        return left;
+    }
+
+    private Expression and() {
+        Expression left = equality();
+        while (match(TokenType.AND)) {
+            Token operator = previous();
+            Expression right = equality();
+            left = new Expression.Logical(operator, left, right);
+        }
+
+        return left;
     }
 
     private Expression equality() {

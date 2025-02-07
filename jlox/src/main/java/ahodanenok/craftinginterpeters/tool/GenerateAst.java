@@ -25,7 +25,8 @@ public class GenerateAst {
             "Grouping : Expression expression",
             "Variable : Token name",
             "Assign : Token name, Expression expression",
-            "Logical : Token operator, Expression left, Expression right"
+            "Logical : Token operator, Expression left, Expression right",
+            "Call : Expression callee, Token paren, java.util.List<Expression> arguments"
         ));
         defineAst(outputDir, "Statement", Arrays.asList(
             "Expr : Expression expression",
@@ -34,7 +35,9 @@ public class GenerateAst {
             "Block : java.util.List<Statement> statements",
             "If : Expression condition, Statement thenBranch, Statement elseBranch",
             "While : Expression condition, Statement body",
-            "Break : Token keyword"
+            "Break : Token keyword",
+            "Function : Token name, java.util.List<Token> params, java.util.List<Statement> body",
+            "Return : Token keyword, Expression expression"
         ));
     }
 

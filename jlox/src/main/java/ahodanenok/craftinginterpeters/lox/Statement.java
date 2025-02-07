@@ -19,6 +19,10 @@ abstract class Statement {
         R visitWhileStatement(While statement);
 
         R visitBreakStatement(Break statement);
+
+        R visitFunctionStatement(Function statement);
+
+        R visitReturnStatement(Return statement);
     }
 
     final static class Expr extends Statement {
@@ -124,6 +128,40 @@ abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitBreakStatement(this);
+        }
+    }
+
+    final static class Function extends Statement {
+
+        final Token name;
+        final java.util.List<Token> params;
+        final java.util.List<Statement> body;
+
+        Function(Token name, java.util.List<Token> params, java.util.List<Statement> body) {
+            this.name = name;
+            this.params = params;
+            this.body = body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitFunctionStatement(this);
+        }
+    }
+
+    final static class Return extends Statement {
+
+        final Token keyword;
+        final Expression expression;
+
+        Return(Token keyword, Expression expression) {
+            this.keyword = keyword;
+            this.expression = expression;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitReturnStatement(this);
         }
     }
 }

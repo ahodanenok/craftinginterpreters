@@ -94,7 +94,7 @@ final class Scanner {
                 } else if (isLetter(ch)) {
                     identifier();
                 } else {
-                    Lox.error(line, String.format("Unexpected character '%c'", ch));
+                    Lox.error(line, "Unexpected character.");
                 }
             }
         }

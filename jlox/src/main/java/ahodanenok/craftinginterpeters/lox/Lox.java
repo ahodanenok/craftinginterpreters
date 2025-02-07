@@ -58,10 +58,6 @@ public final class Lox {
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scan();
-        if (hadError) {
-            return;
-        }
-
         Parser parser = new Parser(tokens);
         List<Statement> program = parser.parse();
         if (hadError) {
@@ -74,10 +70,6 @@ public final class Lox {
     private static void runPrompt(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scan();
-        if (hadError) {
-            return;
-        }
-
         List<Statement> program = null;
         Parser parser = new Parser(tokens);
 

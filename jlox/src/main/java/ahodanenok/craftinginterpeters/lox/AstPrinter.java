@@ -62,6 +62,11 @@ public class AstPrinter implements Expression.Visitor<String> {
         return parethesize(expression.operator.lexeme, expression.left, expression.right);
     }
 
+    @Override
+    public String visitCallExpression(Expression.Call expression) {
+        return parethesize("call", expression.arguments.toArray(new Expression[0]));
+    }
+
     private String parethesize(String type, Expression... expressions) {
         StringBuilder sb = new StringBuilder();
         sb.append("(").append(type);

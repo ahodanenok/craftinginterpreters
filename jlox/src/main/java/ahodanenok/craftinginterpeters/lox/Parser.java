@@ -33,6 +33,8 @@ final class Parser {
         try {
             if (match(TokenType.VAR)) {
                 return varDeclaration();
+            } else if (match(TokenType.FUN)) {
+                return function("function");
             } else {
                 return statement();
             }
@@ -53,6 +55,28 @@ final class Parser {
         return new Statement.Var(name, initializer);
     }
 
+    private Statement function(String kind) {
+        Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+
+        consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> params = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (params.size() > 254) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+
+                params.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        List<Statement> body = block();
+
+        return new Statement.Function(name, params, body);
+    }
+
     private Statement statement() {
         if (match(TokenType.PRINT)) {
             return printStatement();
@@ -66,6 +90,8 @@ final class Parser {
             return forStatement();
         } else if (match(TokenType.BREAK)) {
             return breakStatement();
+        } else if (match(TokenType.RETURN)) {
+            return returnStatement();
         } else {
             return expressionStatement();
         }
@@ -153,8 +179,19 @@ final class Parser {
         return statement;
     }
 
+    private Statement returnStatement() {
+        Token keyword = previous();
+        Expression expression = null;
+        if (!check(TokenType.SEMICOLON)) {
+            expression = comma();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+
+        return new Statement.Return(keyword, expression);
+    }
+
     private Statement expressionStatement() {
-        Expression expression = expression();
+        Expression expression = comma();
         consume(TokenType.SEMICOLON, "Expect ';' after expression.");
         return new Statement.Expr(expression);
     }
@@ -180,7 +217,7 @@ final class Parser {
     }
 
     private Expression ternary() {
-        return ternary(comma());
+        return ternary(or());
     }
 
     private Expression ternary(Expression condition) {
@@ -209,11 +246,11 @@ final class Parser {
     private Expression commaMissingLeft() {
         if (match(TokenType.COMMA)) {
             Token operator = previous();
-            or();
+            expression();
             throw error(operator, "Expect left-hand operand.");
         }
 
-        return or();
+        return expression();
     }
 
     private Expression or() {
@@ -328,8 +365,38 @@ final class Parser {
         if (match(TokenType.BANG, TokenType.MINUS)) {
             return new Expression.Unary(previous(), unary());
         } else {
-            return primary();
+            return call();
         }
+    }
+
+    private Expression call() {
+        Expression expression = primary();
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expression = call(expression);
+            } else {
+                break;
+            }
+        }
+
+        return expression;
+    }
+
+    private Expression call(Expression callee) {
+        List<Expression> arguments = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (arguments.size() > 254) {
+                    error(peek(), "Can't have more than 255 arguments.");
+                }
+
+                arguments.add(expression());
+            } while (match(TokenType.COMMA));
+        }
+        Token paren = consume(TokenType.RIGHT_PAREN,
+             "Expect ')' after arguments.");
+
+        return new Expression.Call(callee, paren, arguments);
     }
 
     private Expression primary() {

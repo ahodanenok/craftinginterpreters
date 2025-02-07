@@ -1,13 +1,34 @@
 package ahodanenok.craftinginterpreters.lox;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
-    private Environment environment = new Environment();
+    Environment globals = new Environment();
+    private Environment environment = globals;
     private LinkedList<Boolean> loopBroken = new LinkedList<>();
+
+    Interpreter() {
+        globals.define("clock", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
+    }
 
     void interpret(List<Statement> program) {
         try {
@@ -52,7 +73,7 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         return null;
     }
 
-    private void executeBlock(List<Statement> statements, Environment currentEnvironment) {
+    void executeBlock(List<Statement> statements, Environment currentEnvironment) {
         Environment previousEnvironment = this.environment;
         try {
             this.environment = currentEnvironment;
@@ -94,6 +115,23 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         }
         loopBroken.set(0, true);
         return null;
+    }
+
+    @Override
+    public Void visitFunctionStatement(Statement.Function statement) {
+        LoxFunction function = new LoxFunction(statement, environment);
+        environment.define(statement.name.lexeme, function);
+        return null;
+    }
+
+    @Override
+    public Void visitReturnStatement(Statement.Return statement) {
+        Object value = null;
+        if (statement.expression != null) {
+            value = evaluate(statement.expression);
+        }
+
+        throw new Return(value);
     }
 
     @Override
@@ -214,6 +252,30 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         }
 
         return evaluate(expression.right);
+    }
+
+    @Override
+    public Object visitCallExpression(Expression.Call expression) {
+        Object callee = evaluate(expression.callee);
+        List<Object> arguments = new ArrayList<>();
+        for (Expression argument : expression.arguments) {
+            arguments.add(evaluate(argument));
+        }
+
+        if (callee instanceof LoxCallable callable) {
+            if (callable.arity() != arguments.size()) {
+                throw new RuntimeError(expression.paren,
+                    String.format(
+                        "Expected %d arguments but got %d.",
+                        callable.arity(),
+                        arguments.size()));
+            }
+
+            return callable.call(this, arguments);
+        }
+
+        throw new RuntimeError(expression.paren,
+            "Can only call functions and classes.");
     }
 
     private Object evaluate(Expression expression) {

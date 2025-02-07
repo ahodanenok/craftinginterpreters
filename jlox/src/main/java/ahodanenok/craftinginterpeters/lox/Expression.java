@@ -21,6 +21,8 @@ abstract class Expression {
         R visitAssignExpression(Assign expression);
 
         R visitLogicalExpression(Logical expression);
+
+        R visitCallExpression(Call expression);
     }
 
     final static class Literal extends Expression {
@@ -148,6 +150,24 @@ abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitLogicalExpression(this);
+        }
+    }
+
+    final static class Call extends Expression {
+
+        final Expression callee;
+        final Token paren;
+        final java.util.List<Expression> arguments;
+
+        Call(Expression callee, Token paren, java.util.List<Expression> arguments) {
+            this.callee = callee;
+            this.paren = paren;
+            this.arguments = arguments;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitCallExpression(this);
         }
     }
 }

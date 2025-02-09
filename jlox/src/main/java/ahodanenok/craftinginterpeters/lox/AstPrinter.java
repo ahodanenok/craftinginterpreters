@@ -67,6 +67,11 @@ public class AstPrinter implements Expression.Visitor<String> {
         return parethesize("call", expression.arguments.toArray(new Expression[0]));
     }
 
+    @Override
+    public String visitLambdaExpression(Expression.Lambda expression) {
+        return "<fun>";
+    }
+
     private String parethesize(String type, Expression... expressions) {
         StringBuilder sb = new StringBuilder();
         sb.append("(").append(type);

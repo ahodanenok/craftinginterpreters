@@ -48,7 +48,7 @@ final class Parser {
         Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
         Expression initializer = null;
         if (match(TokenType.EQUAL)) {
-            initializer = expression();
+            initializer = lambda();
         }
         consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
 
@@ -98,7 +98,7 @@ final class Parser {
     }
 
     private Statement printStatement() {
-        Expression expression = expression();
+        Expression expression = lambda();
         consume(TokenType.SEMICOLON, "Expect ';' after expression.");
         return new Statement.Print(expression);
     }
@@ -183,7 +183,7 @@ final class Parser {
         Token keyword = previous();
         Expression expression = null;
         if (!check(TokenType.SEMICOLON)) {
-            expression = comma();
+            expression = lambda();
         }
         consume(TokenType.SEMICOLON, "Expect ';' after return value.");
 
@@ -198,6 +198,32 @@ final class Parser {
 
     private Expression expression() {
         return assignment();
+    }
+
+    private Expression lambda() {
+        if (!match(TokenType.FUN)) {
+            return expression();
+        }
+
+        Token keyword = previous();
+
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'fun'.");
+        List<Token> params = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (params.size() > 254) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+
+                params.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before lambda body.");
+        List<Statement> body = block();
+
+        return new Expression.Lambda(keyword, params, body);
     }
 
     private Expression assignment() {
@@ -390,7 +416,7 @@ final class Parser {
                     error(peek(), "Can't have more than 255 arguments.");
                 }
 
-                arguments.add(expression());
+                arguments.add(lambda());
             } while (match(TokenType.COMMA));
         }
         Token paren = consume(TokenType.RIGHT_PAREN,

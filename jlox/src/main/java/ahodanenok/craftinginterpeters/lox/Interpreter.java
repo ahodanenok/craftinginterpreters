@@ -278,6 +278,11 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
             "Can only call functions and classes.");
     }
 
+    @Override
+    public Object visitLambdaExpression(Expression.Lambda expression) {
+        return new LoxLambda(expression, environment);
+    }
+
     private Object evaluate(Expression expression) {
         return expression.accept(this);
     }

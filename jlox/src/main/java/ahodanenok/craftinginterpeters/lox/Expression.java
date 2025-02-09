@@ -23,6 +23,8 @@ abstract class Expression {
         R visitLogicalExpression(Logical expression);
 
         R visitCallExpression(Call expression);
+
+        R visitLambdaExpression(Lambda expression);
     }
 
     final static class Literal extends Expression {
@@ -168,6 +170,24 @@ abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitCallExpression(this);
+        }
+    }
+
+    final static class Lambda extends Expression {
+
+        final Token keyword;
+        final java.util.List<Token> params;
+        final java.util.List<Statement> body;
+
+        Lambda(Token keyword, java.util.List<Token> params, java.util.List<Statement> body) {
+            this.keyword = keyword;
+            this.params = params;
+            this.body = body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLambdaExpression(this);
         }
     }
 }

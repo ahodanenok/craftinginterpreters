@@ -1,14 +1,17 @@
 package ahodanenok.craftinginterpreters.lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
 
     Environment globals = new Environment();
     private Environment environment = globals;
+    private Map<Expression, Integer> locals = new HashMap<>();
     private LinkedList<Boolean> loopBroken = new LinkedList<>();
 
     Interpreter() {
@@ -38,6 +41,10 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         } catch (RuntimeError e) {
             Lox.runtimeError(e.token, e.getMessage());
         }
+    }
+
+    void resolve(Expression expression, int distance) {
+        locals.put(expression, distance);
     }
 
     @Override
@@ -225,13 +232,27 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
     @Override
     public Object visitVariableExpression(Expression.Variable expression) {
-        return environment.get(expression.name);
+        return lookupVariable(expression.name, expression);
+    }
+
+    private Object lookupVariable(Token name, Expression expression) {
+        Integer distance = locals.get(expression);
+        if (distance != null) {
+            return environment.getAt(distance, name.lexeme);
+        } else {
+            return globals.get(name);
+        }
     }
 
     @Override
     public Object visitAssignExpression(Expression.Assign expression) {
         Object value = evaluate(expression.expression);
-        environment.assign(expression.name, value);
+        Integer distance = locals.get(expression);
+        if (distance != null) {
+            environment.assignAt(distance, expression.name, value);
+        } else {
+            globals.assign(expression.name, value);
+        }
         environment.markInitialized(expression.name.lexeme);
         return value;
     }

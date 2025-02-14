@@ -126,7 +126,7 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
     @Override
     public Void visitFunctionStatement(Statement.Function statement) {
-        LoxFunction function = new LoxFunction(statement, environment);
+        LoxFunction function = new LoxFunction(statement, environment, false);
         environment.define(statement.name.lexeme, function);
         return null;
     }
@@ -139,6 +139,20 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         }
 
         throw new Return(value);
+    }
+
+    @Override
+    public Void visitClassStatement(Statement.Class statement) {
+        environment.define(statement.name.lexeme, null);
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Statement.Function method : statement.methods) {
+            methods.put(method.name.lexeme,
+                new LoxFunction(method, environment, method.name.lexeme.equals("init")));
+        }
+
+        LoxClass klass = new LoxClass(statement.name.lexeme, methods);
+        environment.assign(statement.name, klass);
+        return null;
     }
 
     @Override
@@ -302,6 +316,34 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     @Override
     public Object visitLambdaExpression(Expression.Lambda expression) {
         return new LoxLambda(expression, environment);
+    }
+
+    @Override
+    public Object visitGetExpression(Expression.Get expression) {
+        Object object = evaluate(expression.object);
+        if (object instanceof LoxInstance instance) {
+            return instance.get(expression.name);
+        }
+
+        throw new RuntimeError(expression.name,
+            "Only instances have properties.");
+    }
+
+    @Override
+    public Object visitSetExpression(Expression.Set expression) {
+        Object object = evaluate(expression.object);
+        if (object instanceof LoxInstance instance) {
+            Object value = evaluate(expression.value);
+            instance.set(expression.name, value);
+            return value;
+        }
+
+        throw new RuntimeError(expression.name, "Only instances have fields.");
+    }
+
+    @Override
+    public Object visitThisExpression(Expression.This expression) {
+        return lookupVariable(expression.keyword, expression);
     }
 
     private Object evaluate(Expression expression) {

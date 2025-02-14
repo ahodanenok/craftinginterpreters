@@ -25,6 +25,12 @@ abstract class Expression {
         R visitCallExpression(Call expression);
 
         R visitLambdaExpression(Lambda expression);
+
+        R visitGetExpression(Get expression);
+
+        R visitSetExpression(Set expression);
+
+        R visitThisExpression(This expression);
     }
 
     final static class Literal extends Expression {
@@ -188,6 +194,54 @@ abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitLambdaExpression(this);
+        }
+    }
+
+    final static class Get extends Expression {
+
+        final Expression object;
+        final Token name;
+
+        Get(Expression object, Token name) {
+            this.object = object;
+            this.name = name;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitGetExpression(this);
+        }
+    }
+
+    final static class Set extends Expression {
+
+        final Expression object;
+        final Token name;
+        final Expression value;
+
+        Set(Expression object, Token name, Expression value) {
+            this.object = object;
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSetExpression(this);
+        }
+    }
+
+    final static class This extends Expression {
+
+        final Token keyword;
+
+        This(Token keyword) {
+            this.keyword = keyword;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitThisExpression(this);
         }
     }
 }

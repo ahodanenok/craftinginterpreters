@@ -35,6 +35,8 @@ final class Parser {
                 return varDeclaration();
             } else if (match(TokenType.FUN)) {
                 return function("function");
+            } else if (match(TokenType.CLASS)) {
+                return classDeclaration();
             } else {
                 return statement();
             }
@@ -55,7 +57,7 @@ final class Parser {
         return new Statement.Var(name, initializer);
     }
 
-    private Statement function(String kind) {
+    private Statement.Function function(String kind) {
         Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
 
         consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
@@ -75,6 +77,19 @@ final class Parser {
         List<Statement> body = block();
 
         return new Statement.Function(name, params, body);
+    }
+
+    private Statement classDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+        List<Statement.Function> methods = new ArrayList<>();
+        while (hasMoreTokens() && !check(TokenType.RIGHT_BRACE)) {
+            methods.add(function("method"));
+        }
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+
+        return new Statement.Class(name, methods);
     }
 
     private Statement statement() {
@@ -234,6 +249,8 @@ final class Parser {
 
             if (left instanceof Expression.Variable v) {
                 return new Expression.Assign(v.name, right);
+            } else if (left instanceof Expression.Get get) {
+                return new Expression.Set(get.object, get.name, right);
             }
 
             error(equals, "Invalid assignment target.");
@@ -400,6 +417,10 @@ final class Parser {
         while (true) {
             if (match(TokenType.LEFT_PAREN)) {
                 expression = call(expression);
+            } else if (match(TokenType.DOT)) {
+                Token name = consume(TokenType.IDENTIFIER,
+                    "Expect property name after '.'.");
+                expression = new Expression.Get(expression, name);
             } else {
                 break;
             }
@@ -440,6 +461,8 @@ final class Parser {
             return new Expression.Grouping(expression);
         } else if (match(TokenType.IDENTIFIER)) {
             return new Expression.Variable(previous());
+        } else if (match(TokenType.THIS)) {
+            return new Expression.This(previous());
         } else {
             throw error(peek(), "Expect expression.");
         }

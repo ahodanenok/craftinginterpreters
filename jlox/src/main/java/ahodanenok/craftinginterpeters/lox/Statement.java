@@ -23,6 +23,8 @@ abstract class Statement {
         R visitFunctionStatement(Function statement);
 
         R visitReturnStatement(Return statement);
+
+        R visitClassStatement(Class statement);
     }
 
     final static class Expr extends Statement {
@@ -162,6 +164,22 @@ abstract class Statement {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitReturnStatement(this);
+        }
+    }
+
+    final static class Class extends Statement {
+
+        final Token name;
+        final java.util.List<Function> methods;
+
+        Class(Token name, java.util.List<Function> methods) {
+            this.name = name;
+            this.methods = methods;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitClassStatement(this);
         }
     }
 }

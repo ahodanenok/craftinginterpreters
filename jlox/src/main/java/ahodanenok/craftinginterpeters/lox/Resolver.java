@@ -11,17 +11,27 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
 
         NONE,
         FUNCTION,
-        LAMBDA;
+        LAMBDA,
+        METHOD,
+        INITIALIZER;
+    }
+
+    private enum ClassType {
+
+        NONE,
+        CLASS;
     }
 
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes;
     private FunctionType currentFunction;
+    private ClassType currentClass;
 
     Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
         this.scopes = new Stack<>();
         this.currentFunction = FunctionType.NONE;
+        this.currentClass = ClassType.NONE;
     }
 
     void resolve(List<Statement> statements) {
@@ -77,6 +87,11 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
         }
 
         if (statement.expression != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(statement.keyword,
+                    "Can't return a value from an initializer.");
+            }
+
             resolve(statement.expression);
         }
         return null;
@@ -91,6 +106,32 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
 
     @Override
     public Void visitBreakStatement(Statement.Break statement) {
+        return null;
+    }
+
+    @Override
+    public Void visitClassStatement(Statement.Class statement) {
+        declare(statement.name);
+        define(statement.name);
+
+        ClassType prevClass = currentClass;
+        currentClass = ClassType.CLASS;
+
+        beginScope();
+        scopes.peek().put("this", true);
+        for (Statement.Function method : statement.methods) {
+            FunctionType declaration;
+            if (method.name.lexeme.equals("init")) {
+                declaration = FunctionType.INITIALIZER;
+            } else {
+                declaration = FunctionType.METHOD;
+            }
+
+            resolveFunction(method, declaration);
+        }
+        endScope();
+        currentClass = prevClass;
+
         return null;
     }
 
@@ -178,7 +219,31 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
         resolve(expression.left);
         resolve(expression.right);
         return null;
+    }
 
+    @Override
+    public Void visitGetExpression(Expression.Get expression) {
+        resolve(expression.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSetExpression(Expression.Set expression) {
+        resolve(expression.object);
+        resolve(expression.value);
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpression(Expression.This expression) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expression.keyword,
+                "Can't use 'this' outside of a class.");
+            return null;
+        }
+
+        resolveLocal(expression, expression.keyword);
+        return null;
     }
 
     private void declare(Token name) {

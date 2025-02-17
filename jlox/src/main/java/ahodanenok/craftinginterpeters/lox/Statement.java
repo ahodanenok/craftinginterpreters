@@ -170,10 +170,12 @@ abstract class Statement {
     final static class Class extends Statement {
 
         final Token name;
+        final Expression.Variable parent;
         final java.util.List<Function> methods;
 
-        Class(Token name, java.util.List<Function> methods) {
+        Class(Token name, Expression.Variable parent, java.util.List<Function> methods) {
             this.name = name;
+            this.parent = parent;
             this.methods = methods;
         }
 

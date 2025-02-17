@@ -81,15 +81,21 @@ final class Parser {
 
     private Statement classDeclaration() {
         Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
-        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
+        Expression.Variable parent = null;
+        if (match(TokenType.LESS)) {
+            parent = new Expression.Variable(
+                consume(TokenType.IDENTIFIER, "Expect superclass name."));
+        }
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
         List<Statement.Function> methods = new ArrayList<>();
         while (hasMoreTokens() && !check(TokenType.RIGHT_BRACE)) {
             methods.add(function("method"));
         }
         consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Statement.Class(name, methods);
+        return new Statement.Class(name, parent, methods);
     }
 
     private Statement statement() {
@@ -463,6 +469,11 @@ final class Parser {
             return new Expression.Variable(previous());
         } else if (match(TokenType.THIS)) {
             return new Expression.This(previous());
+        } else if (match(TokenType.SUPER)) {
+            Token keyword = previous();
+            consume(TokenType.DOT, "Expect '.' after 'super'.");
+            return new Expression.Super(keyword,
+                consume(TokenType.IDENTIFIER, "Expect superclass method name."));
         } else {
             throw error(peek(), "Expect expression.");
         }

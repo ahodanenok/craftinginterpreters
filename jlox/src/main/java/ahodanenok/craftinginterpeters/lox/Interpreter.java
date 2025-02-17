@@ -143,14 +143,32 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
     @Override
     public Void visitClassStatement(Statement.Class statement) {
+        Object parent = null;
+        if (statement.parent != null) {
+            parent = evaluate(statement.parent);
+            if (!(parent instanceof LoxClass)) {
+                throw new RuntimeError(statement.parent.name,
+                    "Superclass must be a class.");
+            }
+        }
+
         environment.define(statement.name.lexeme, null);
+        if (statement.parent != null) {
+            environment = new Environment(environment);
+            environment.define("super", parent);
+        }
+
         Map<String, LoxFunction> methods = new HashMap<>();
         for (Statement.Function method : statement.methods) {
             methods.put(method.name.lexeme,
                 new LoxFunction(method, environment, method.name.lexeme.equals("init")));
         }
 
-        LoxClass klass = new LoxClass(statement.name.lexeme, methods);
+        if (statement.parent != null) {
+            environment = environment.parent;
+        }
+
+        LoxClass klass = new LoxClass(statement.name.lexeme, (LoxClass) parent, methods);
         environment.assign(statement.name, klass);
         return null;
     }
@@ -344,6 +362,21 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     @Override
     public Object visitThisExpression(Expression.This expression) {
         return lookupVariable(expression.keyword, expression);
+    }
+
+    @Override
+    public Object visitSuperExpression(Expression.Super expression) {
+        int distance = locals.get(expression);
+        LoxClass parent = (LoxClass) environment.getAt(distance, "super");
+        LoxInstance object =
+            (LoxInstance) environment.getAt(distance - 1, "this");
+        LoxFunction method = parent.findMethod(expression.method.lexeme);
+        if (method == null) {
+            throw new RuntimeError(expression.method,
+                "Undefined property '" + expression.method.lexeme + "'.");
+        }
+
+        return method.bind(object);
     }
 
     private Object evaluate(Expression expression) {

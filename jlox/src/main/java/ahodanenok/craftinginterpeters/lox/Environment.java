@@ -9,7 +9,7 @@ class Environment {
 
     private final Map<String, Object> values = new HashMap<>();
     private final Set<String> initialized = new HashSet<>();
-    private final Environment parent;
+    final Environment parent;
 
     Environment() {
         parent = null;

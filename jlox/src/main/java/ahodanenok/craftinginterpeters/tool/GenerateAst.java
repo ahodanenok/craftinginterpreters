@@ -30,7 +30,8 @@ public class GenerateAst {
             "Lambda : Token keyword, java.util.List<Token> params, java.util.List<Statement> body",
             "Get : Expression object, Token name",
             "Set : Expression object, Token name, Expression value",
-            "This : Token keyword"
+            "This : Token keyword",
+            "Super : Token keyword, Token method"
         ));
         defineAst(outputDir, "Statement", Arrays.asList(
             "Expr : Expression expression",
@@ -42,7 +43,7 @@ public class GenerateAst {
             "Break : Token keyword",
             "Function : Token name, java.util.List<Token> params, java.util.List<Statement> body",
             "Return : Token keyword, Expression expression",
-            "Class : Token name, java.util.List<Function> methods"
+            "Class : Token name, Expression.Variable parent, java.util.List<Function> methods"
         ));
     }
 

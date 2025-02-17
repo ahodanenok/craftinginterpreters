@@ -19,7 +19,8 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
     private enum ClassType {
 
         NONE,
-        CLASS;
+        CLASS,
+        SUBCLASS;
     }
 
     private final Interpreter interpreter;
@@ -117,6 +118,18 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
         ClassType prevClass = currentClass;
         currentClass = ClassType.CLASS;
 
+        if (statement.parent != null) {
+            if (statement.parent.name.lexeme.equals(statement.name.lexeme)) {
+                Lox.error(statement.parent.name, "A class can't inherit from itself.");
+            }
+
+            currentClass = ClassType.SUBCLASS;
+            resolve(statement.parent);
+
+            beginScope();
+            scopes.peek().put("super", true);
+        }
+
         beginScope();
         scopes.peek().put("this", true);
         for (Statement.Function method : statement.methods) {
@@ -130,6 +143,9 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
             resolveFunction(method, declaration);
         }
         endScope();
+        if (statement.parent != null) {
+            endScope();
+        }
         currentClass = prevClass;
 
         return null;
@@ -240,6 +256,20 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
             Lox.error(expression.keyword,
                 "Can't use 'this' outside of a class.");
             return null;
+        }
+
+        resolveLocal(expression, expression.keyword);
+        return null;
+    }
+
+    @Override
+    public Void visitSuperExpression(Expression.Super expression) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expression.keyword,
+                "Can't use 'super' outside of a class.");
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Lox.error(expression.keyword,
+                "Can't use 'super' in a class with no superclass.");
         }
 
         resolveLocal(expression, expression.keyword);

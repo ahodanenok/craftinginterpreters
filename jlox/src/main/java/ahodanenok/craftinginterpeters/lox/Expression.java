@@ -31,6 +31,8 @@ abstract class Expression {
         R visitSetExpression(Set expression);
 
         R visitThisExpression(This expression);
+
+        R visitSuperExpression(Super expression);
     }
 
     final static class Literal extends Expression {
@@ -242,6 +244,22 @@ abstract class Expression {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitThisExpression(this);
+        }
+    }
+
+    final static class Super extends Expression {
+
+        final Token keyword;
+        final Token method;
+
+        Super(Token keyword, Token method) {
+            this.keyword = keyword;
+            this.method = method;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitSuperExpression(this);
         }
     }
 }
